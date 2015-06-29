@@ -38,6 +38,7 @@ class GliderCamera:
 
   def capture(self):
     self.camera = picamera.PiCamera()
+    self.camera.resolution = (2592, 1944)
     '''self.camera.start_preview()'''
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name
