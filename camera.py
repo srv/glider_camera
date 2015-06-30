@@ -44,6 +44,14 @@ class GliderCamera:
 
   def capture(self):
     self.camera = picamera.PiCamera()
+    self.camera.mode = self.camera_config["mode"]
+    self.camera.sharpness = self.camera_config["sharpness"]
+    self.camera.brightness = self.camera_config["brightness"]
+    self.camera.contrast = self.camera_config["contrast"]
+    self.camera.iso = self.camera_config["ISO"]
+    self.camera.exposure_mode = self.camera_config["exposure_mode"]
+    self.camera.drc_strength = self.camera_config["drc"]
+    self.camera.shutter_speed = self.camera_config["shutter_speed"]
     '''self.camera.start_preview()'''
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name
