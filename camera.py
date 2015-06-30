@@ -13,7 +13,13 @@ class GliderCamera:
     self.end_date = self.init_date
     self.freq = 10
     self.readConfig("config.yaml")
+    self.readCameraConfig("camera_config.yaml")
     self.capture()
+
+  def readCameraConfig(self, filename):
+    stream = open(filename, 'r')
+    ys = yaml.load(stream)
+    self.camera_config = ys
 
   def readConfig(self, filename):
     stream = open(filename, 'r')
@@ -38,7 +44,6 @@ class GliderCamera:
 
   def capture(self):
     self.camera = picamera.PiCamera()
-    self.camera.resolution = (2592, 1944)
     '''self.camera.start_preview()'''
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name

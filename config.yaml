@@ -1,5 +1,5 @@
-mission_name: "SOCUM_RPi2_test"
-freq: 10
-init_date: "29/05/2015 12:30"
-end_date: "29/05/2015 15:13"
+mission_name: "prova"
+freq: 0.5
+init_date: "30/06/2015 06:30"
+end_date: "30/06/2015 16:13"
 
