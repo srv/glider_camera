@@ -15,9 +15,6 @@ class GliderCamera:
     self.freq = 10
     self.readConfig("config.yaml")
     self.readCameraConfig("camera_config.yaml")
-    self.led = self.camera_config["ledPin"]
-    self.ledTimeOn = self.camera_config["ledDelayOn"]
-    self.ledTimeOff = self.camera_config["ledDelayOff"]
     self.startLed()
     self.capture()
 
@@ -42,7 +39,10 @@ class GliderCamera:
   def startLed(self):
     GPIO.setmode(GPIO.BCM)
     GPIO.setwarnings(False)
+    self.led = self.camera_config["ledPin"]
     GPIO.setup(self.led, GPIO.OUT)
+    self.ledTimeOn = self.camera_config["ledDelayOn"]
+    self.ledTimeOff = self.camera_config["ledDelayOff"]
     GPIO.output(self.led, 0)
 
   def shutdown(self):
@@ -78,16 +78,18 @@ class GliderCamera:
     while datetime.now() > self.init_date and datetime.now() < self.end_date:
       GPIO.output(self.led , 1)
       time.sleep(self.ledTimeOn)
-      iniAux = time.clock()
+      iniAux = datetime.now()
       image_time = time.strftime("%Y%m%d-%H%M%S")
       self.camera.capture(path + '/img-' + image_time + '.jpg')
       print("Saved img-" + image_time + ".jpg")
-      finAux = time.clock()
-      captureTime = finAux - iniAux
+      finAux = datetime.now()
+      captureTime = (finAux - iniAux).total_seconds()
+      print (captureTime)
       time.sleep(self.ledTimeOff)
       GPIO.output(self.led , 0)
-      remaining = self.freq - ledTimeOn - ledTimeOff - captureTime
-      time.sleep(remaining)
+      remaining = self.freq - self.ledTimeOn - self.ledTimeOff - captureTime
+      if remaining > 0:
+        time.sleep(remaining)
     if datetime.now() > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
