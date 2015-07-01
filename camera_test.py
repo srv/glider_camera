@@ -4,6 +4,7 @@ from datetime import datetime
 import time
 import picamera
 import os
+import RPi.GPIO as GPIO
 
 class GliderCamera:
   def __init__(self):
@@ -12,8 +13,11 @@ class GliderCamera:
     self.init_date = datetime.now()
     self.end_date = self.init_date
     self.freq = 10
+    self.led = 14
+    self.ledTime = 2
     self.readConfig("config.yaml")
     self.readCameraConfig("camera_config.yaml")
+    slef.startLed()
     self.capture()
 
   def readCameraConfig(self, filename):
@@ -34,6 +38,11 @@ class GliderCamera:
     print "\t* End date:  %s" % self.end_date
     print "\t* Frequency: %s" % self.freq
 
+  def startLed(self):
+    self.GPIO.setmode(GPIO.BCM)
+    self.GPIO.setwarnings(False)
+    self.GPIO.setup(self.led, GPIO.OUT)
+
   def shutdown(self):
     #TODO: change shutdown to power off
     command = "/usr/bin/sudo /sbin/shutdown -k now"
@@ -44,6 +53,16 @@ class GliderCamera:
 
   def capture(self):
     self.camera = picamera.PiCamera()
+    width = self.camera_config["width"]
+    height = self.camera_config["height"]
+    self.camera.resolution = (width,height)
+    self.camera.sharpness = self.camera_config["sharpness"]
+    self.camera.brightness = self.camera_config["brightness"]
+    #self.camera.contrast = self.camera_config["contrast"]
+    self.camera.iso = self.camera_config["ISO"]
+    self.camera.exposure_mode = self.camera_config["exposure_mode"]
+    self.camera.drc_strength = self.camera_config["drc"]
+    #self.camera.shutter_speed = self.camera_config["shutter_speed"]
     '''self.camera.start_preview()'''
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name
@@ -55,10 +74,13 @@ class GliderCamera:
     while datetime.now() < self.init_date:
       time.sleep(10)
     while datetime.now() > self.init_date and datetime.now() < self.end_date:
+      GPIO.output(self.led, 1)
+      time.sleep(self.ledTime)
       image_time = time.strftime("%Y%m%d-%H%M%S")
-      param = 'settings'
-      self.camera.capture(path + '/img-' + image_time + '-' + str(param) + '.jpg')
-      print("Saved img-" + image_time + '-' + str(param)  +  ".jpg")
+      self.camera.capture(path + '/img-' + image_time + '.jpg')
+      print("Saved img-" + image_time + ".jpg")
+      time.sleep(self.ledTime)
+      GPIO.output(self.led, 0)
       time.sleep(self.freq)
     if datetime.now() > self.end_date:
       print "Capture time ended. Shutdown..."
