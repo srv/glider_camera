@@ -20,4 +20,4 @@ drc: 'low'
 shutter_speed: 3800
 led_delay_on: 0
 led_delay_off: 0
-led_pin: 14
+led_pin: 23

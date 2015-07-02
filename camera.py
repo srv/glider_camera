@@ -87,7 +87,7 @@ class GliderCamera:
       print("Saved img-" + image_time + ".jpg")
       fin_aux = datetime.now()
       capture_time = (fin_aux - ini_aux).total_seconds()
-      print (capture_time)
+      #print (capture_time)
       time.sleep(self.led_time_off)
       GPIO.output(self.led , 0)
       remaining = self.freq - self.led_time_on - self.led_time_off - capture_time
