@@ -1,5 +1,18 @@
+# Folder name
 mission_name: "prova"
-freq: 30
-init_date: "01/07/2015 06:30"
-end_date: "03/07/2015 13:20"
+
+# Operation mode: master or slave
+# In slave, the GLIDER must send a signal to the RPi2
+mode: "slave"
+
+# Only in SLAVE mode
+photos_per_cycle: 100
+
+# Time in seconds between consecutive photos
+period: 30
+
+# Start and end dates of the mission
+# Photos will be taken ONLY between those dates
+start_date: "01/07/2015 06:30"
+end_date: "03/07/2016 13:20"
 
