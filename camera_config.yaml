@@ -1,23 +1,36 @@
+# Size of the images 
 width: 2592
 height: 1944
-hflip: False
-vflip: False
-crop: (0.0, 0.0, 1.0, 1.0)
+
+# Sharpness: values between -100 and 100 (default: 0)
 sharpness: 0
+
+# Contrast: values between -100 and 100 (default: 0)
 contrast: 0
+
+# Brightness: values between 0 and 100 (default: 50)
 brightness: 50
-saturation: 0
+
+# ISO: values between 100 and 800 (default: automatic)
 iso: 375
-video_stabilization: False
-exposure_compensation: 0
+
+# Exposure mode (default: 'auto')
 exposure_mode: 'auto'
-meter_mode: 'average'
-awb_mode: 'auto'
-image_effect: 'none'
-color_effects: 'none'
-rotation: 0
+
+# DRC control of the camera (increasing the range of dark areas): possibles
+# values are 'off', 'low', 'medium' and 'high'
 drc: 'low'
+
+# Shutter speed in microseconds
 shutter_speed: 3800
+
+# Time in seconds of pre-capturing and post-capturing, respectively, 
+# meanwhile the led is glowing
 led_delay_on: 0
 led_delay_off: 0
-led_pin: 23
+
+# Number of the GPIO pin that feeds the led light
+led_pin_output: 23
+
+# Number of the GPIO pin that controls RPi in slave mode
+signal_pin_input: 25
