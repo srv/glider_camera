@@ -70,6 +70,11 @@ class GliderCamera:
 
   def startCamera(self):
     """ Initializes the camera and its params """
+
+    time.sleep(1)
+    path = os.getcwd() + "/" + self.mission_name
+    if not os.path.exists(path):
+      os.makedirs(path)
     self.camera = picamera.PiCamera()
     width = self.camera_config["width"]
     height = self.camera_config["height"]
@@ -94,45 +99,30 @@ class GliderCamera:
     time.sleep(10)
     return False
 
-
   def captureMaster(self):
     """ Automatic capture mode """
     self.startCamera()
-    time.sleep(1)
-    path = os.getcwd() + "/" + self.mission_name
-    if not os.path.exists(path):
-      os.makedirs(path)
     while self.checkTime():
       self.capture(path)
 
   def captureSlave(self):
     """ Slave capture mode. Capture cycles do NOT overlap """
-    last = False
-    while datetime.now() < self.end_date:
-      signal_received = GPIO.input(self.signal_input)
-      if signal_received == last:
+    previous_signal = False
+    while self.checkTime():
+      current_signal = GPIO.input(self.signal_input)
+      if current_signal == previous_signal:
+        # Wait
         time.sleep(5)
-      elif last == True:
-        last = False
+      elif previous_signal == True:
+        # Reset the previous value to be ready for the next rising edge
+        previous_signal = False
       else:
-        last = True
-        time.sleep(1)
-        path = os.getcwd() + "/" + self.mission_name
-        if not os.path.exists(path):
-          os.makedirs(path)
-        if datetime.now() < self.start_date:
-          d = self.start_date - datetime.now()
-          print "Capture will start in " + repr(d.days) + " days..."
-        else:
-          self.startCamera()
-          for i in range(0, self.photos_per_cycle):
-            self.capture(path)
-            if datetime.now() > self.end_date:
-              break
-          self.camera.close()
-    print "Capture time ended. Shutdown..."
-    self.shutdown()
-
+        # Capture starts
+        previous_signal = True
+        self.startCamera()
+        for i in range(0, self.photos_per_cycle):
+          self.capture(path)
+        self.camera.close()
 
   def capture(self, path):
     """ Captures an image whilst lightning the LED """
