@@ -111,7 +111,7 @@ class GliderCamera:
   def captureSlave(self):
     loop_break = False
     GPIO.add_event_detect(self.signal_input, GPIO.RISING)
-    def myCallback():
+    def myCallback(self):
       time.sleep(1)
       path = os.getcwd() + "/" + self.mission_name
       if not os.path.exists(path):
