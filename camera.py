@@ -68,7 +68,7 @@ class GliderCamera:
     print output
 
   def startCamera(self):
-    slef.camera = picamera.PiCamera()
+    self.camera = picamera.PiCamera()
     width = self.camera_config["width"]
     height = self.camera_config["height"]
     self.camera.resolution = (width,height)
