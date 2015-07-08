@@ -109,6 +109,7 @@ class GliderCamera:
       self.shutdown()
 
   def captureSlave(self):
+    loop_break = False
     GPIO.add_event_detect(self.signal_input, GPIO.RISING)
     def myCallback():
       time.sleep(1)
@@ -120,6 +121,7 @@ class GliderCamera:
         print "Capture will start in " + repr(d.days) + " days..."
       while datetime.now() < self.start_date:
         time.sleep(10)
+      loop_break = True
       for i in range(0, self.photos_per_cycle):
         if datetime.now() > self.end_date:
           print "Capture time ended. Shutdown..."
@@ -142,6 +144,10 @@ class GliderCamera:
         print "Capture time ended. Shutdown..."
         self.shutdown()
     GPIO.add_event_callback(self.signal_input, myCallback)
+    while True:
+      if loop_break == True:
+        break
+
 
 
 if __name__ == "__main__":
