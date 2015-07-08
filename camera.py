@@ -16,6 +16,7 @@ class GliderCamera:
     self.readConfig("config.yaml")
     self.readCameraConfig("camera_config.yaml")
     self.startLed()
+    self.camera = picamera.PiCamera()
     self.startCamera()
     if self.mode == "master":
       self.captureMaster()
@@ -68,7 +69,7 @@ class GliderCamera:
     print output
 
   def startCamera(self):
-    self.camera = picamera.PiCamera()
+    #self.camera = picamera.PiCamera()
     width = self.camera_config["width"]
     height = self.camera_config["height"]
     self.camera.resolution = (width,height)
@@ -110,7 +111,7 @@ class GliderCamera:
 
   def captureSlave(self):
     # We suppose all photo cycles won't overlap
-    last == False
+    last = False
     while True:
       signal_received = GPIO.input(self.signal_input)
       if signal_received == last:
@@ -118,6 +119,7 @@ class GliderCamera:
       elif last == True:
         last == False
       else:
+ 	last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
