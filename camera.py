@@ -106,7 +106,7 @@ class GliderCamera:
       elif last == True:
         last = False
       else:
-       	last = True
+        last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
