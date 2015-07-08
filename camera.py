@@ -103,13 +103,14 @@ class GliderCamera:
       print "Leo..."
       signal_received = GPIO.input(self.signal_input)
       if signal_received == last:
-	print "Dormir..."
+	      print "Dormir..."
         time.sleep(10)
       elif last == True:
         last == False
+        time.sleep(10)
       else:
-	print "Entro..."
- 	last = True
+      	print "Entro..."
+       	last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
