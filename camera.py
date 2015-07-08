@@ -80,6 +80,21 @@ class GliderCamera:
     self.camera.exposure_mode = self.camera_config["exposure_mode"]
     self.camera.drc_strength = self.camera_config["drc"]
 
+  def checkTime(self):
+    time_now = datetime.now()
+    if (time_now > self.start_date and time_now < self.end_date):
+      return True
+    elif time_now < self.start_date:
+      d = self.start_date - time_now
+      print "Capture will start in " + repr(d.days) + " days..."
+      time.sleep(d.seconds)
+    elif time_now > self.end_date:
+      print "Capture time ended. Shutdown..."
+      self.shutdown()
+    time.sleep(10)
+    return False
+
+
   def captureMaster(self):
     """ Automatic capture mode """
     self.startCamera()
@@ -87,16 +102,8 @@ class GliderCamera:
     path = os.getcwd() + "/" + self.mission_name
     if not os.path.exists(path):
       os.makedirs(path)
-    if datetime.now() < self.start_date:
-      d = self.start_date - datetime.now()
-      print "Capture will start in " + repr(d.days) + " days..."
-    while datetime.now() < self.start_date:
-      time.sleep(10)
-    while datetime.now() > self.start_date and datetime.now() < self.end_date:
+    while self.checkTime():
       self.capture(path)
-    if datetime.now() > self.end_date:
-      print "Capture time ended. Shutdown..."
-      self.shutdown()
 
   def captureSlave(self):
     """ Slave capture mode. Capture cycles do NOT overlap """
