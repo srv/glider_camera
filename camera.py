@@ -56,7 +56,6 @@ class GliderCamera:
     GPIO.setup(self.signal_input, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     self.led_time_on = self.camera_config["led_delay_on"]
     self.led_time_off = self.camera_config["led_delay_off"]
-    # GPIO.output(self.led_output, 0)
 
   def shutdown(self):
     #TODO: change shutdown to power off
@@ -70,11 +69,9 @@ class GliderCamera:
     self.camera.resolution = (width,height)
     self.camera.sharpness = self.camera_config["sharpness"]
     self.camera.brightness = self.camera_config["brightness"]
-    #self.camera.contrast = self.camera_config["contrast"]
     self.camera.iso = self.camera_config["iso"]
     self.camera.exposure_mode = self.camera_config["exposure_mode"]
     self.camera.drc_strength = self.camera_config["drc"]
-    #self.camera.shutter_speed = self.camera_config["shutter_speed"]
 
   def captureMaster(self):
     self.startCamera()
@@ -94,7 +91,7 @@ class GliderCamera:
       self.shutdown()
 
   def captureSlave(self):
-    # We suppose all photo cycles won't overlap
+    # We suppose photo cycles won't overlap
     last = False
     while datetime.now() < self.end_date:
       signal_received = GPIO.input(self.signal_input)
