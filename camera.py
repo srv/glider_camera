@@ -16,7 +16,6 @@ class GliderCamera:
     self.readConfig("config.yaml")
     self.readCameraConfig("camera_config.yaml")
     self.startLed()
-    self.camera = picamera.PiCamera()
     self.startCamera()
     if self.mode == "master":
       self.captureMaster()
@@ -69,7 +68,7 @@ class GliderCamera:
     print output
 
   def startCamera(self):
-    #self.camera = picamera.PiCamera()
+    self.camera = picamera.PiCamera()
     width = self.camera_config["width"]
     height = self.camera_config["height"]
     self.camera.resolution = (width,height)
@@ -92,34 +91,23 @@ class GliderCamera:
     while datetime.now() < self.start_date:
       time.sleep(10)
     while datetime.now() > self.start_date and datetime.now() < self.end_date:
-      GPIO.output(self.led_output , 1)
-      time.sleep(self.led_time_on)
-      ini_aux = datetime.now()
-      image_time = time.strftime("%Y%m%d-%H%M%S")
-      self.camera.capture(path + '/img-' + image_time + '.jpg')
-      print("Saved img-" + image_time + ".jpg")
-      fin_aux = datetime.now()
-      capture_time = (fin_aux - ini_aux).total_seconds()
-      time.sleep(self.led_time_off)
-      GPIO.output(self.led_output , 0)
-      remaining = self.period - self.led_time_on - self.led_time_off - capture_time
-      if remaining > 0:
-        time.sleep(remaining)
+      self.capture()
     if datetime.now() > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
 
   def captureSlave(self):
     # We suppose all photo cycles won't overlap
+    self.camera.close()
     last = False
-    while True:
+    while datetime.now() < self.end_date:
       signal_received = GPIO.input(self.signal_input)
       if signal_received == last:
         time.sleep(10)
       elif last == True:
         last == False
       else:
- 	last = True
+ 	      last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
@@ -127,28 +115,31 @@ class GliderCamera:
         if datetime.now() < self.start_date:
           d = self.start_date - datetime.now()
           print "Capture will start in " + repr(d.days) + " days..."
-        elif datetime.now() > self.start_date and datetime.now() < self.end_date:
+        else:
+          self.camera = picamera.PiCamera()
           for i in range(0, self.photos_per_cycle):
+            self.capture()
             if datetime.now() > self.end_date:
               break
-            GPIO.output(self.led_output, 1)
-            time.sleep(self.led_time_on)
-            ini_aux = datetime.now()
-            image_time = time.strftime("%Y%m%d-%H%M%S")
-            self.camera.capture(path + '/img-' + image_time + '.jpg')
-            print("Saved img-" + image_time + ".jpg")
-            fin_aux = datetime.now()
-            capture_time = (fin_aux - ini_aux).total_seconds()
-            time.sleep(self.led_time_off)
-            GPIO.output(self.led_output , 0)
-            remaining = self.period - self.led_time_on - self.led_time_off - capture_time
-            if remaining > 0:
-              time.sleep(remaining)
-        if datetime.now() > self.end_date:
-          print "Capture time ended. Shutdown..."
-          self.shutdown()
-          break
+          self.camera.close()
+    print "Capture time ended. Shutdown..."
+    self.shutdown()
+          
 
+  def capture(self):
+    GPIO.output(self.led_output, 1)
+    time.sleep(self.led_time_on)
+    ini_aux = datetime.now()
+    image_time = time.strftime("%Y%m%d-%H%M%S")
+    self.camera.capture(path + '/img-' + image_time + '.jpg')
+    print("Saved img-" + image_time + ".jpg")
+    fin_aux = datetime.now()
+    capture_time = (fin_aux - ini_aux).total_seconds()
+    time.sleep(self.led_time_off)
+    GPIO.output(self.led_output , 0)
+    remaining = self.period - self.led_time_on - self.led_time_off - capture_time
+    if remaining > 0:
+      time.sleep(remaining)
 
 
 if __name__ == "__main__":
