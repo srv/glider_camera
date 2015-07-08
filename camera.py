@@ -60,11 +60,8 @@ class GliderCamera:
 
   def shutdown(self):
     #TODO: change shutdown to power off
-    command = "/usr/bin/sudo /sbin/shutdown -k now"
     import subprocess
-    process = subprocess.Popen(command.split(), stdout=subprocess.PIPE)
-    output = process.communicate()[0]
-    print output
+    subprocess.call(["sudo",  "shutdown",  "-k",  "+10",  '"RPi2 is going down to save battery. If you are planning to work, cancel it using < sudo shutdown -c > and remember to change the end date"'])
 
   def startCamera(self):
     self.camera = picamera.PiCamera()
@@ -123,7 +120,7 @@ class GliderCamera:
           self.camera.close()
     print "Capture time ended. Shutdown..."
     self.shutdown()
-          
+
 
   def capture(self, path):
     GPIO.output(self.led_output, 1)
