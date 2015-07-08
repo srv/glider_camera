@@ -100,16 +100,13 @@ class GliderCamera:
     # We suppose all photo cycles won't overlap
     last = False
     while datetime.now() < self.end_date:
-      print "Leo..."
       signal_received = GPIO.input(self.signal_input)
       if signal_received == last:
-	print "Dormir..."
-        time.sleep(10)
+        time.sleep(5)
       elif last == True:
-        last == False
+        last = False
       else:
-	print "Entro..."
- 	last = True
+       	last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
@@ -123,9 +120,7 @@ class GliderCamera:
             self.capture(path)
             if datetime.now() > self.end_date:
               break
-          print "Cierro...."
           self.camera.close()
-      print "Acabo..."
     print "Capture time ended. Shutdown..."
     self.shutdown()
           

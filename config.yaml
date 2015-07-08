@@ -9,10 +9,10 @@ mode: "slave"
 photos_per_cycle: 100
 
 # Time in seconds between consecutive photos
-period: 30
+period: 5
 
 # Start and end dates of the mission
 # Photos will be taken ONLY between those dates
 start_date: "01/07/2015 06:30"
-end_date: "03/07/2016 13:20"
+end_date: "08/07/2015 11:58"
 
