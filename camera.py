@@ -16,7 +16,6 @@ class GliderCamera:
     self.readConfig("config.yaml")
     self.readCameraConfig("camera_config.yaml")
     self.startLed()
-    self.startCamera()
     if self.mode == "master":
       self.captureMaster()
     elif self.mode == "slave":
@@ -81,6 +80,7 @@ class GliderCamera:
     #self.camera.shutter_speed = self.camera_config["shutter_speed"]
 
   def captureMaster(self):
+    self.startCamera()
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name
     if not os.path.exists(path):
@@ -98,7 +98,6 @@ class GliderCamera:
 
   def captureSlave(self):
     # We suppose all photo cycles won't overlap
-    self.camera.close()
     last = False
     while datetime.now() < self.end_date:
       print "Leo..."
@@ -119,7 +118,7 @@ class GliderCamera:
           d = self.start_date - datetime.now()
           print "Capture will start in " + repr(d.days) + " days..."
         else:
-          self.camera = picamera.PiCamera()
+          self.startCamera()
           for i in range(0, self.photos_per_cycle):
             self.capture(path)
             if datetime.now() > self.end_date:
