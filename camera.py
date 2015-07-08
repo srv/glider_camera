@@ -91,7 +91,7 @@ class GliderCamera:
     while datetime.now() < self.start_date:
       time.sleep(10)
     while datetime.now() > self.start_date and datetime.now() < self.end_date:
-      self.capture()
+      self.capture(path)
     if datetime.now() > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
@@ -101,13 +101,16 @@ class GliderCamera:
     self.camera.close()
     last = False
     while datetime.now() < self.end_date:
+      print "Leo..."
       signal_received = GPIO.input(self.signal_input)
       if signal_received == last:
+	print "Dormir..."
         time.sleep(10)
       elif last == True:
         last == False
       else:
- 	      last = True
+	print "Entro..."
+ 	last = True
         time.sleep(1)
         path = os.getcwd() + "/" + self.mission_name
         if not os.path.exists(path):
@@ -118,15 +121,17 @@ class GliderCamera:
         else:
           self.camera = picamera.PiCamera()
           for i in range(0, self.photos_per_cycle):
-            self.capture()
+            self.capture(path)
             if datetime.now() > self.end_date:
               break
+          print "Cierro...."
           self.camera.close()
+      print "Acabo..."
     print "Capture time ended. Shutdown..."
     self.shutdown()
           
 
-  def capture(self):
+  def capture(self, path):
     GPIO.output(self.led_output, 1)
     time.sleep(self.led_time_on)
     ini_aux = datetime.now()
