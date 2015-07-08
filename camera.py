@@ -109,45 +109,44 @@ class GliderCamera:
       self.shutdown()
 
   def captureSlave(self):
-    loop_break = False
-    GPIO.add_event_detect(self.signal_input, GPIO.RISING)
-    def myCallback():
-      time.sleep(1)
-      path = os.getcwd() + "/" + self.mission_name
-      if not os.path.exists(path):
-        os.makedirs(path)
-      if datetime.now() < self.start_date:
-        d = self.start_date - datetime.now()
-        print "Capture will start in " + repr(d.days) + " days..."
-      while datetime.now() < self.start_date:
+    # We suppose all photo cycles won't overlap
+    last == False 
+    while True:
+      signal_received = GPIO.input(self.signal_input)
+      if signal_received == last:
         time.sleep(10)
-      loop_break = True
-      for i in range(0, self.photos_per_cycle):
+      elif last == True:
+        last == False
+      else:
+        time.sleep(1)
+        path = os.getcwd() + "/" + self.mission_name
+        if not os.path.exists(path):
+          os.makedirs(path)
+        if datetime.now() < self.start_date:
+          d = self.start_date - datetime.now()
+          print "Capture will start in " + repr(d.days) + " days..."
+        elif datetime.now() > self.start_date and datetime.now() < self.end_date:
+          for i in range(0, self.photos_per_cycle):
+            if datetime.now() > self.end_date:
+              break
+            GPIO.output(self.led_output, 1)
+            time.sleep(self.led_time_on)
+            ini_aux = datetime.now()
+            image_time = time.strftime("%Y%m%d-%H%M%S")
+            self.camera.capture(path + '/img-' + image_time + '.jpg')
+            print("Saved img-" + image_time + ".jpg")
+            fin_aux = datetime.now()
+            capture_time = (fin_aux - ini_aux).total_seconds()
+            time.sleep(self.led_time_off)
+            GPIO.output(self.led_output , 0)
+            remaining = self.period - self.led_time_on - self.led_time_off - capture_time
+            if remaining > 0:
+              time.sleep(remaining)
         if datetime.now() > self.end_date:
           print "Capture time ended. Shutdown..."
           self.shutdown()
           break
-        GPIO.output(self.led_output, 1)
-        time.sleep(self.led_time_on)
-        ini_aux = datetime.now()
-        image_time = time.strftime("%Y%m%d-%H%M%S")
-        self.camera.capture(path + '/img-' + image_time + '.jpg')
-        print("Saved img-" + image_time + ".jpg")
-        fin_aux = datetime.now()
-        capture_time = (fin_aux - ini_aux).total_seconds()
-        time.sleep(self.led_time_off)
-        GPIO.output(self.led_output , 0)
-        remaining = self.period - self.led_time_on - self.led_time_off - capture_time
-        if remaining > 0:
-          time.sleep(remaining)
-      if datetime.now() < self.end_date:
-        print "Capture time ended. Shutdown..."
-        self.shutdown()
-    GPIO.add_event_callback(self.signal_input, myCallback)
-    while True:
-      if loop_break == True:
-        break
-
+  
 
 
 if __name__ == "__main__":
