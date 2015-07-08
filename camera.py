@@ -63,14 +63,13 @@ class GliderCamera:
     self.led_time_off = self.camera_config["led_delay_off"]
 
   def shutdown(self):
-    """ Shutdowns the entire Raspberry """
+    """ Shutdowns the entire system """
     #TODO: change shutdown to power off
     import subprocess
     subprocess.call(["sudo",  "shutdown",  "-k",  "+10",  '"RPi2 is going down to save battery. If you are planning to work, cancel it using < sudo shutdown -c > and remember to change the end date"'])
 
   def startCamera(self):
     """ Initializes the camera and its params """
-
     time.sleep(1)
     path = os.getcwd() + "/" + self.mission_name
     if not os.path.exists(path):
@@ -108,10 +107,15 @@ class GliderCamera:
   def captureSlave(self):
     """ Slave capture mode. Capture cycles do NOT overlap """
     previous_signal = False
+    slave_message_shown = False
     while self.checkTime():
       current_signal = GPIO.input(self.signal_input)
       if current_signal == previous_signal:
         # Wait
+        if not slave_message_shown:
+          print "Slave mode: Waiting for rising edge..."
+          slave_message_shown = True
+        #TODO how much time can we sleep?
         time.sleep(5)
       elif previous_signal == True:
         # Reset the previous value to be ready for the next rising edge
@@ -121,6 +125,7 @@ class GliderCamera:
         previous_signal = True
         self.startCamera()
         for i in range(0, self.photos_per_cycle):
+          #TODO if time_now > end_date we are still taking pictures. Ask Marc.
           self.capture(path)
         self.camera.close()
 
@@ -139,7 +144,6 @@ class GliderCamera:
     remaining = self.period - self.led_time_on - self.led_time_off - capture_time
     if remaining > 0:
       time.sleep(remaining)
-
 
 if __name__ == "__main__":
   try:
