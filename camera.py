@@ -71,9 +71,9 @@ class GliderCamera:
   def startCamera(self):
     """ Initializes the camera and its params """
     time.sleep(1)
-    path = os.getcwd() + "/" + self.mission_name
-    if not os.path.exists(path):
-      os.makedirs(path)
+    self.path = os.getcwd() + "/" + self.mission_name
+    if not os.path.exists(self.path):
+      os.makedirs(self.path)
     self.camera = picamera.PiCamera()
     width = self.camera_config["width"]
     height = self.camera_config["height"]
@@ -102,7 +102,7 @@ class GliderCamera:
     """ Automatic capture mode """
     self.startCamera()
     while self.checkTime():
-      self.capture(path)
+      self.capture()
 
   def captureSlave(self):
     """ Slave capture mode. Capture cycles do NOT overlap """
@@ -125,17 +125,18 @@ class GliderCamera:
         previous_signal = True
         self.startCamera()
         for i in range(0, self.photos_per_cycle):
-          #TODO if time_now > end_date we are still taking pictures. Ask Marc.
-          self.capture(path)
+          self.capture()
+          if datetime.now() > self.end_date:
+            break
         self.camera.close()
 
-  def capture(self, path):
+  def capture(self):
     """ Captures an image whilst lightning the LED """
     GPIO.output(self.led_output, 1)
     time.sleep(self.led_time_on)
     ini_aux = datetime.now()
     image_time = time.strftime("%Y%m%d-%H%M%S")
-    self.camera.capture(path + '/img-' + image_time + '.jpg')
+    self.camera.capture(self.path + '/img-' + image_time + '.jpg')
     print("Saved img-" + image_time + ".jpg")
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()
