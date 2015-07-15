@@ -57,10 +57,19 @@ class GliderCamera:
     GPIO.setwarnings(False)
     self.led_output = self.camera_config["led_pin_output"]
     self.signal_input = self.camera_config["signal_pin_input"]
+    self.led_state_red = self.camera_config["state_red"]
+    self.led_state_green = self.camera_config["state_green"]
     GPIO.setup(self.led_output, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(self.signal_input, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+    GPIO.setup(self.led_state_red, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(self.led_state_green, GPIO.OUT, initial=GPIO.LOW)
     self.led_time_on = self.camera_config["led_delay_on"]
     self.led_time_off = self.camera_config["led_delay_off"]
+    self.time_green_led = self.camera_config["time_green_led"]
+    self.time_red_led = self.camera_config["time_red_led"]
+    self.flashes_led = self.camera_config["flashes_led"]
+    self.time_between_flashes = self.camera_config["time_between_flashes"]
+    self.time_of_each_flash = self.camera_config["time_of_each_flash"]
 
   def shutdown(self):
     """ Shutdowns the entire system """
@@ -91,12 +100,37 @@ class GliderCamera:
     elif time_now < self.start_date:
       d = self.start_date - time_now
       print "Capture will start in " + repr(d.days) + " days..."
-      time.sleep(d.seconds)
+      number_of_intervals = d.seconds/self.time_green_led
+      remaining = d.seconds%self.time_green_led
+      for i in range(0, number_of_intervals):
+        self.state(0,0,self.led_state_green,self.time_green_led)
+      self.state(1,remaining,self.led_state_green,self.time_green_led)
     elif time_now > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
     time.sleep(10)
     return False
+
+  def flash(self, led_pin):
+    for i in range(0, self.flashes_led):
+      if i > 0:
+        time.sleep(self.time_between_flashes)
+      GPIO.output(self.led_pin, 1)
+      time.sleep(time_of_each_flash)
+      GPIO.output(self.led_pin, 0)
+
+  def state(self, finish_bool, time_to_finish, led_pin, time_waiting):
+    ini_aux = datetime.now()
+    self.flash(led_pin)
+    fin_aux = datetime.now()
+    diff = (fin_aux - ini_aux).total_seconds()
+    if finish_bool == 0:
+      if time_waiting - diff > 0:
+        time.sleep(time_waiting - diff)
+    elif finish_bool == 1:
+      if time_to_finish - diff > 0:
+        time.sleep(time_to_finish - diff)
+
 
   def captureMaster(self):
     """ Automatic capture mode """

@@ -33,4 +33,17 @@ led_delay_off: 0
 led_pin_output: 23
 
 # Number of the GPIO pin that controls RPi in slave mode
-signal_pin_input: 25
+signal_pin_input: 24
+
+# Number of the GPIO pins that show the state of the camera
+state_red: 16
+state_green: 20
+
+# Time features (in seconds) of the camera state
+time_green_led: 15
+time_red_led: 300
+time_between_flashes: 0.5
+time_of_each_flash: 1
+
+# Number of flashings of the led states
+flashes_led: 3
