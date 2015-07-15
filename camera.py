@@ -115,9 +115,9 @@ class GliderCamera:
     for i in range(0, self.flashes_led):
       if i > 0:
         time.sleep(self.time_between_flashes)
-      GPIO.output(self.led_pin, 1)
-      time.sleep(time_of_each_flash)
-      GPIO.output(self.led_pin, 0)
+      GPIO.output(led_pin, 1)
+      time.sleep(self.time_of_each_flash)
+      GPIO.output(led_pin, 0)
 
   def state(self, finish_bool, time_to_finish, led_pin, time_waiting):
     ini_aux = datetime.now()
