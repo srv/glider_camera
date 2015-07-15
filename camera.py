@@ -92,6 +92,7 @@ class GliderCamera:
     self.camera.iso = self.camera_config["iso"]
     self.camera.exposure_mode = self.camera_config["exposure_mode"]
     self.camera.drc_strength = self.camera_config["drc"]
+    self.memory_threshold = self.camera_config["memory_threshold"]
 
   def checkTime(self):
     time_now = datetime.now()
@@ -130,6 +131,15 @@ class GliderCamera:
     elif finish_bool == 1:
       if time_to_finish - diff > 0:
         time.sleep(time_to_finish - diff)
+
+  def checkMemory(self):
+    import subprocess
+    memory = subprocess.call(["sudo",  "df",  "|",  "grep",  "rootfs",  "|",  "awk", "'{print $4}'"])
+    available = int(memory) - self.memory_threshold
+    if available > 0:
+      return True 
+    else:
+      return False
 
 
   def captureMaster(self):
@@ -170,7 +180,10 @@ class GliderCamera:
     time.sleep(self.led_time_on)
     ini_aux = datetime.now()
     image_time = time.strftime("%Y%m%d-%H%M%S")
+    GPIO.output(self.state_red, 0)
     self.camera.capture(self.path + '/img-' + image_time + '.jpg')
+    if not self.checkMemory():
+      self.flash(self.state_red)
     print("Saved img-" + image_time + ".jpg")
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()

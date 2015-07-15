@@ -47,3 +47,6 @@ time_of_each_flash: 1
 
 # Number of flashings of the led states
 flashes_led: 3
+
+# Memory alarm threshold in bytes
+memory_threshold: 1000000000
