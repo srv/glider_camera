@@ -24,6 +24,7 @@ class GliderCamera:
   def __del__(self):
     """ Destructor of GliderCamera class """
     GPIO.output(self.led_output, 0)
+    GPIO.output(self.led_state_red, 0)
 
   def readCameraConfig(self, filename):
     """ Reads the specified yaml configuration file """
@@ -134,7 +135,13 @@ class GliderCamera:
 
   def checkMemory(self):
     import subprocess
-    memory = subprocess.call(["sudo",  "df",  "|",  "grep",  "rootfs",  "|",  "awk", "'{print $4}'"])
+    #memory = subprocess.call(["sudo",  "df|grep",  "rootfs|awk", "'{print $4}'"])
+    p1 = subprocess.Popen(["sudo", "df"], stdout = subprocess.PIPE)
+    p2 = subprocess.Popen(["grep", "rootfs"], stdin = p1.stdout, stdout = subprocess.PIPE)
+    p3 = subprocess.Popen(["awk", "{print $4}"], stdin = p2.stdout, stdout = subprocess.PIPE)
+    p1.stdout.close()
+    p2.stdout.close()
+    memory = p3.stdout.readline()
     available = int(memory) - self.memory_threshold
     if available > 0:
       return True 
@@ -180,10 +187,10 @@ class GliderCamera:
     time.sleep(self.led_time_on)
     ini_aux = datetime.now()
     image_time = time.strftime("%Y%m%d-%H%M%S")
-    GPIO.output(self.state_red, 0)
+    GPIO.output(self.led_state_red, 0)
     self.camera.capture(self.path + '/img-' + image_time + '.jpg')
     if not self.checkMemory():
-      self.flash(self.state_red)
+      self.flash(self.led_state_red)
     print("Saved img-" + image_time + ".jpg")
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()
