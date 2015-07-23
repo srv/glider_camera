@@ -5,6 +5,7 @@ import time
 import picamera
 import os
 import RPi.GPIO as GPIO
+import Adafruit_MCP9808.MCP9808 as MCP9808
 
 class GliderCamera:
   def __init__(self):
@@ -16,6 +17,7 @@ class GliderCamera:
     self.period = 10
     self.readConfig("config.yaml", "camera_config.yaml")
     self.startLed()
+    self.startSensor()
     if self.mode == "master":
       self.captureMaster()
     elif self.mode == "slave":
@@ -71,6 +73,12 @@ class GliderCamera:
     self.flashes_led = self.camera_config["flashes_led"]
     self.time_between_flashes = self.camera_config["time_between_flashes"]
     self.time_of_each_flash = self.camera_config["time_of_each_flash"]
+
+  def startSensor(self):
+    self.max_temp = self.camera_config["max_temp"]
+    self.min_temp = self.camera_config["min_temp"]
+    self.temp_sensor = MCP9808.MCP9808()
+    self.temp_sensor.begin()
 
   def shutdown(self):
     """ Shutdowns the entire system """
@@ -188,10 +196,12 @@ class GliderCamera:
     ini_aux = datetime.now()
     image_time = time.strftime("%Y%m%d-%H%M%S")
     GPIO.output(self.led_state_red, 0)
-    self.camera.capture(self.path + '/img-' + image_time + '.jpg')
-    if not self.checkMemory():
-      self.flash(self.led_state_red)
-    print("Saved img-" + image_time + ".jpg")
+    temp = self.temp_sensor.readTempC()
+    if temp < self.max_temp and temp > self.min_temp:
+      self.camera.capture(self.path + '/img-' + image_time + '.jpg')
+      if not self.checkMemory():
+        self.flash(self.led_state_red)
+      print("Saved img-" + image_time + ".jpg at " + str(temp) + "C")
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()
     time.sleep(self.led_time_off)

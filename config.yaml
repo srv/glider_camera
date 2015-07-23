@@ -3,10 +3,10 @@ mission_name: "prova"
 
 # Operation mode: master or slave
 # In slave, the GLIDER must send a signal to the RPi2
-mode: "slave"
+mode: "master"
 
 # Only in SLAVE mode
-photos_per_cycle: 100
+photos_per_cycle: 3
 
 # Time in seconds between consecutive photos
 period: 5
@@ -14,5 +14,5 @@ period: 5
 # Start and end dates of the mission
 # Photos will be taken ONLY between those dates
 start_date: "01/07/2015 06:30"
-end_date: "08/07/2015 11:58"
+end_date: "08/07/2016 11:58"
 

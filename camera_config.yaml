@@ -30,10 +30,10 @@ led_delay_on: 0
 led_delay_off: 0
 
 # Number of the GPIO pin that feeds the led light
-led_pin_output: 23
+led_pin_output: 24
 
 # Number of the GPIO pin that controls RPi in slave mode
-signal_pin_input: 24
+signal_pin_input: 23
 
 # Number of the GPIO pins that show the state of the camera
 state_red: 16
@@ -49,4 +49,8 @@ time_of_each_flash: 1
 flashes_led: 3
 
 # Memory alarm threshold in bytes
-memory_threshold: 1000000000
+memory_threshold: 1000000
+
+#Sensors thresholds (temperature in celsius)
+max_temp: 40
+min_temp: 15
