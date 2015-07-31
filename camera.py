@@ -12,7 +12,7 @@ class GliderCamera:
     """ Constructor of GliderCamera class """
     print "[GliderCamera]"
     self.mission_name = "test"
-    self.start_date = datetime.now()
+    self.start_date = datetime.now() # datetime.now() returns the current date and time
     self.end_date = self.start_date
     self.period = 10
     self.readConfig("config.yaml", "camera_config.yaml")
@@ -23,9 +23,11 @@ class GliderCamera:
     elif self.mode == "slave":
       self.captureSlave()
 
+
   def __del__(self):
     """ Destructor of GliderCamera class """
-    GPIO.output(self.led_output, 0)
+    # All the output GPIOs must be turned off (all lights turned off) when stopping the execution (ctrl C)
+    GPIO.output(self.led_output, 0) # this function sets to 0V (0) or 3,3V (1) the desired output GPIO pin
     GPIO.output(self.led_state_red, 0)
     GPIO.output(self.led_state_green, 0)
 
@@ -56,14 +58,14 @@ class GliderCamera:
     print "\t* Period:           %s" % self.period
 
   def startLed(self):
-    """ Sets the configuration for the LED output """
-    GPIO.setmode(GPIO.BCM)
+    """ Reads and sets the configuration for the LED output """
+    GPIO.setmode(GPIO.BCM) # RPi has two modes of numbering GPIO pins
     GPIO.setwarnings(False)
     self.led_output = self.camera_config["led_pin_output"]
     self.signal_input = self.camera_config["signal_pin_input"]
     self.led_state_red = self.camera_config["state_red"]
     self.led_state_green = self.camera_config["state_green"]
-    GPIO.setup(self.led_output, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(self.led_output, GPIO.OUT, initial=GPIO.LOW) #GPIO.LOw sets the initial value to 0 V
     GPIO.setup(self.signal_input, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
     GPIO.setup(self.led_state_red, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(self.led_state_green, GPIO.OUT, initial=GPIO.LOW)
@@ -79,6 +81,7 @@ class GliderCamera:
     self.time_of_each_flash = self.camera_config["time_of_each_flash"]
 
   def startSensor(self):
+    """ Reads and sets the configuration for the temperature sensor """
     self.max_temp = self.camera_config["max_temp"]
     self.min_temp = self.camera_config["min_temp"]
     self.temp_sensor = MCP9808.MCP9808()
@@ -86,13 +89,14 @@ class GliderCamera:
 
   def shutdown(self):
     """ Shutdowns the entire system """
-    #TODO: change shutdown to power off
+    #TO DO: change shutdown to power off
     import subprocess
     subprocess.call(["sudo",  "shutdown",  "-k",  "+10",  '"RPi2 is going down to save battery. If you are planning to work, cancel it using < sudo shutdown -c > and remember to change the end date"'])
 
   def startCamera(self):
     """ Initializes the camera and its params """
     time.sleep(1)
+    # Creates the directory where images will be saved
     self.path = os.getcwd() + "/" + self.mission_name
     if not os.path.exists(self.path):
       os.makedirs(self.path)
@@ -108,23 +112,26 @@ class GliderCamera:
     self.memory_threshold = self.camera_config["memory_threshold"]
 
   def checkTime(self):
+    """ Checks whether the current time fits in the mission timing window or not """
     time_now = datetime.now()
     if time_now < self.start_date:
       d = self.start_date - time_now
       print "Capture will start in " + repr(d.days) + " days..."
+      # starts the green led flashing sets, which indicate that it is too soon to start the mission
       number_of_intervals = d.seconds/self.time_green_led_out_of_time
       remaining = d.seconds%self.time_green_led_out_of_time
       for i in range(0, number_of_intervals):
-        self.state(0,0,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time)
-      self.state(1,remaining,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time)
+        self.state(0,0,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time) # performing complete flashing set periods
+      self.state(1,remaining,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time) # performing the last flashing set which has 
+      # a very high probability of not being complete (the remaining time to start the mission is less than the time between flashing sets)
     elif time_now > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
-    #time.sleep(10)
     return True
 
-  def flash(self, led_pin, num_flashes_green_led):
-    for i in range(0, num_flashes_green_led):
+  def flash(self, led_pin, num_flashes_led):
+    """ Performs num_flashes_led blinks at the led_pin pin """
+    for i in range(0, num_flashes_led):
       if i > 0:
         time.sleep(self.time_between_flashes)
       GPIO.output(led_pin, 1)
@@ -132,6 +139,7 @@ class GliderCamera:
       GPIO.output(led_pin, 0)
 
   def state(self, finish_bool, time_to_finish, led_pin, time_waiting, num_flashes_green_led):
+    """ Controls the complete flashing period of the green led when it is out of the timing window """
     ini_aux = datetime.now()
     self.flash(led_pin, num_flashes_green_led)
     fin_aux = datetime.now()
@@ -144,8 +152,8 @@ class GliderCamera:
         time.sleep(time_to_finish - diff)
 
   def checkMemory(self):
+    """ Checks the current memory space left and compares it with the memory threshold """
     import subprocess
-    #memory = subprocess.call(["sudo",  "df|grep",  "rootfs|awk", "'{print $4}'"])
     p1 = subprocess.Popen(["sudo", "df"], stdout = subprocess.PIPE)
     p2 = subprocess.Popen(["grep", "rootfs"], stdin = p1.stdout, stdout = subprocess.PIPE)
     p3 = subprocess.Popen(["awk", "{print $4}"], stdin = p2.stdout, stdout = subprocess.PIPE)
@@ -170,7 +178,7 @@ class GliderCamera:
     previous_signal = False
     slave_message_shown = False
     while self.checkTime():
-      current_signal = GPIO.input(self.signal_input)
+      current_signal = GPIO.input(self.signal_input) #returns the value of an input GPIO
       if current_signal == previous_signal:
         # Wait
         if not slave_message_shown:
@@ -178,7 +186,7 @@ class GliderCamera:
           slave_message_shown = True
         ini_aux = datetime.now()
         self.flash(self.led_state_green, self.num_flashes_green_led_waiting_slave)
-        #TODO how much time can we sleep?
+        #TO DO how much time can we sleep?
         fin_aux = datetime.now()
         remaining = self.time_green_led_waiting_slave - (fin_aux - ini_aux).total_seconds()
         if remaining > 0:
@@ -203,7 +211,7 @@ class GliderCamera:
     image_time = time.strftime("%Y%m%d-%H%M%S")
     GPIO.output(self.led_state_red, 0)
     temp = self.temp_sensor.readTempC()
-    if temp < self.max_temp and temp > self.min_temp:
+    if temp < self.max_temp and temp > self.min_temp: #checks whether we are within the temperature range or not
       GPIO.output(self.led_output, 1)
       time.sleep(self.led_time_on)
       self.camera.capture(self.path + '/img-' + image_time + '.jpg')
@@ -212,7 +220,7 @@ class GliderCamera:
       print image_time + ": Out of temperature boundaries"
     GPIO.output(self.led_output , 0)
     if not self.checkMemory():
-      self.flash(self.led_state_red,self.num_flashes_red_led)
+      self.flash(self.led_state_red,self.num_flashes_red_led) # a red led flashing set for each attempt of capture indicates that we have surpassed the memory threshold
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()
     time.sleep(self.led_time_off)
