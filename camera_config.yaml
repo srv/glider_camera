@@ -1,4 +1,4 @@
-# Size of the images 
+# Size of the images (resolution)
 width: 2592
 height: 1944
 
@@ -25,7 +25,7 @@ drc: 'low'
 shutter_speed: 3800
 
 # Time in seconds of pre-capturing and post-capturing, respectively, 
-# meanwhile the led is glowing
+# meanwhile the illumination led is glowing
 led_delay_on: 0
 led_delay_off: 0
 
@@ -35,18 +35,22 @@ led_pin_output: 24
 # Number of the GPIO pin that controls RPi in slave mode
 signal_pin_input: 23
 
-# Number of the GPIO pins that show the state of the camera
+# Number of the GPIO pins corresponding to the leds that
+# show the state of the camera
 state_red: 16
 state_green: 20
 
 # Time features (in seconds) of the camera state
+#Time between two different set of blinks
 time_green_led_out_of_time: 15
 time_green_led_waiting_slave: 20
 time_red_led: 300
+#Time between flashes (blinks) in a set
 time_between_flashes: 0.25
+#Duration of a blink
 time_of_each_flash: 0.75
 
-# Number of flashings of the led states
+# Number of flashings (blinks) of the led states
 num_flashes_green_led_out_of_time: 3
 num_flashes_green_led_waiting_slave: 5
 num_flashes_red_led: 3
@@ -54,6 +58,6 @@ num_flashes_red_led: 3
 # Memory alarm threshold in kilobytes
 memory_threshold: 1000000
 
-#Sensors thresholds (temperature in celsius)
+# Temperature sensor thresholds (in celsius)
 max_temp: 40
 min_temp: 15

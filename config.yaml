@@ -1,4 +1,5 @@
-# Folder name
+# Folder name where photos will be saved (if it doesn't 
+# exist a new one will be created)
 mission_name: "prova"
 
 # Operation mode: master or slave
