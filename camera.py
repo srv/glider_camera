@@ -27,6 +27,7 @@ class GliderCamera:
     """ Destructor of GliderCamera class """
     GPIO.output(self.led_output, 0)
     GPIO.output(self.led_state_red, 0)
+    GPIO.output(self.led_state_green, 0)
 
   def readCameraConfig(self, filename):
     """ Reads the specified yaml configuration file """
@@ -68,9 +69,12 @@ class GliderCamera:
     GPIO.setup(self.led_state_green, GPIO.OUT, initial=GPIO.LOW)
     self.led_time_on = self.camera_config["led_delay_on"]
     self.led_time_off = self.camera_config["led_delay_off"]
-    self.time_green_led = self.camera_config["time_green_led"]
+    self.time_green_led_out_of_time = self.camera_config["time_green_led_out_of_time"]
+    self.time_green_led_waiting_slave = self.camera_config["time_green_led_waiting_slave"]
     self.time_red_led = self.camera_config["time_red_led"]
-    self.flashes_led = self.camera_config["flashes_led"]
+    self.num_flashes_green_led_out_of_time = self.camera_config["num_flashes_green_led_out_of_time"]
+    self.num_flashes_green_led_waiting_slave = self.camera_config["num_flashes_green_led_waiting_slave"]
+    self.num_flashes_red_led = self.camera_config["num_flashes_red_led"]
     self.time_between_flashes = self.camera_config["time_between_flashes"]
     self.time_of_each_flash = self.camera_config["time_of_each_flash"]
 
@@ -105,33 +109,31 @@ class GliderCamera:
 
   def checkTime(self):
     time_now = datetime.now()
-    if (time_now > self.start_date and time_now < self.end_date):
-      return True
-    elif time_now < self.start_date:
+    if time_now < self.start_date:
       d = self.start_date - time_now
       print "Capture will start in " + repr(d.days) + " days..."
-      number_of_intervals = d.seconds/self.time_green_led
-      remaining = d.seconds%self.time_green_led
+      number_of_intervals = d.seconds/self.time_green_led_out_of_time
+      remaining = d.seconds%self.time_green_led_out_of_time
       for i in range(0, number_of_intervals):
-        self.state(0,0,self.led_state_green,self.time_green_led)
-      self.state(1,remaining,self.led_state_green,self.time_green_led)
+        self.state(0,0,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time)
+      self.state(1,remaining,self.led_state_green,self.time_green_led_out_of_time,self.num_flashes_green_led_out_of_time)
     elif time_now > self.end_date:
       print "Capture time ended. Shutdown..."
       self.shutdown()
-    time.sleep(10)
-    return False
+    #time.sleep(10)
+    return True
 
-  def flash(self, led_pin):
-    for i in range(0, self.flashes_led):
+  def flash(self, led_pin, num_flashes_green_led):
+    for i in range(0, num_flashes_green_led):
       if i > 0:
         time.sleep(self.time_between_flashes)
       GPIO.output(led_pin, 1)
       time.sleep(self.time_of_each_flash)
       GPIO.output(led_pin, 0)
 
-  def state(self, finish_bool, time_to_finish, led_pin, time_waiting):
+  def state(self, finish_bool, time_to_finish, led_pin, time_waiting, num_flashes_green_led):
     ini_aux = datetime.now()
-    self.flash(led_pin)
+    self.flash(led_pin, num_flashes_green_led)
     fin_aux = datetime.now()
     diff = (fin_aux - ini_aux).total_seconds()
     if finish_bool == 0:
@@ -174,11 +176,17 @@ class GliderCamera:
         if not slave_message_shown:
           print "Slave mode: Waiting for rising edge..."
           slave_message_shown = True
+        ini_aux = datetime.now()
+        self.flash(self.led_state_green, self.num_flashes_green_led_waiting_slave)
         #TODO how much time can we sleep?
-        time.sleep(5)
+        fin_aux = datetime.now()
+        remaining = self.time_green_led_waiting_slave - (fin_aux - ini_aux).total_seconds()
+        if remaining > 0:
+          time.sleep(remaining)
       elif previous_signal == True:
         # Reset the previous value to be ready for the next rising edge
         previous_signal = False
+        slave_message_shown = False
       else:
         # Capture starts
         previous_signal = True
@@ -191,21 +199,23 @@ class GliderCamera:
 
   def capture(self):
     """ Captures an image whilst lightning the LED """
-    GPIO.output(self.led_output, 1)
-    time.sleep(self.led_time_on)
     ini_aux = datetime.now()
     image_time = time.strftime("%Y%m%d-%H%M%S")
     GPIO.output(self.led_state_red, 0)
     temp = self.temp_sensor.readTempC()
     if temp < self.max_temp and temp > self.min_temp:
+      GPIO.output(self.led_output, 1)
+      time.sleep(self.led_time_on)
       self.camera.capture(self.path + '/img-' + image_time + '.jpg')
-      if not self.checkMemory():
-        self.flash(self.led_state_red)
       print("Saved img-" + image_time + ".jpg at " + str(temp) + "C")
+    else:
+      print image_time + ": Out of temperature boundaries"
+    GPIO.output(self.led_output , 0)
+    if not self.checkMemory():
+      self.flash(self.led_state_red,self.num_flashes_red_led)
     fin_aux = datetime.now()
     capture_time = (fin_aux - ini_aux).total_seconds()
     time.sleep(self.led_time_off)
-    GPIO.output(self.led_output , 0)
     remaining = self.period - self.led_time_on - self.led_time_off - capture_time
     if remaining > 0:
       time.sleep(remaining)

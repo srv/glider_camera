@@ -9,10 +9,10 @@ mode: "master"
 photos_per_cycle: 3
 
 # Time in seconds between consecutive photos
-period: 5
+period: 8
 
 # Start and end dates of the mission
 # Photos will be taken ONLY between those dates
-start_date: "01/07/2015 06:30"
-end_date: "08/07/2016 11:58"
+start_date: "31/07/2015 07:33"
+end_date: "31/07/2016 07:37"
 

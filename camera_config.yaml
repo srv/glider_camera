@@ -40,15 +40,18 @@ state_red: 16
 state_green: 20
 
 # Time features (in seconds) of the camera state
-time_green_led: 15
+time_green_led_out_of_time: 15
+time_green_led_waiting_slave: 20
 time_red_led: 300
-time_between_flashes: 0.5
-time_of_each_flash: 1
+time_between_flashes: 0.25
+time_of_each_flash: 0.75
 
 # Number of flashings of the led states
-flashes_led: 3
+num_flashes_green_led_out_of_time: 3
+num_flashes_green_led_waiting_slave: 5
+num_flashes_red_led: 3
 
-# Memory alarm threshold in bytes
+# Memory alarm threshold in kilobytes
 memory_threshold: 1000000
 
 #Sensors thresholds (temperature in celsius)
